@@ -1,0 +1,892 @@
+[
+  {
+    "name": "whoami",
+    "title": "Who am I",
+    "description": "The account, plan and role this AppForShare token works in.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_projects",
+    "title": "List projects",
+    "description": "Projects (one per app and platform) in the account, newest first, with their ids.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_builds",
+    "title": "List builds",
+    "description": "Recent builds with install link, version, size, installs, store readiness status and channels.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "type": "string",
+          "enum": [
+            "ios",
+            "android"
+          ],
+          "description": "Only iOS or only Android builds"
+        },
+        "app": {
+          "type": "string",
+          "description": "Bundle id (iOS) or package name (Android)"
+        },
+        "project": {
+          "type": "integer",
+          "description": "Project id from list_projects"
+        },
+        "channel": {
+          "type": "string",
+          "description": "Channel name such as beta or live: builds in that channel, newest put in first"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "latest_build",
+    "title": "Latest build",
+    "description": "The newest build matching the filters, with its install link, release notes and store readiness findings.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "type": "string",
+          "enum": [
+            "ios",
+            "android"
+          ],
+          "description": "Only iOS or only Android builds"
+        },
+        "app": {
+          "type": "string",
+          "description": "Bundle id (iOS) or package name (Android)"
+        },
+        "project": {
+          "type": "integer",
+          "description": "Project id from list_projects"
+        },
+        "channel": {
+          "type": "string",
+          "description": "Channel name such as beta or live: builds in that channel, newest put in first"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "build_info",
+    "title": "Build details and store readiness",
+    "description": "One build: install link, version, installs, release notes and the store readiness check (App Store and Google Play rules) with a fix for each finding. Guidance only, not a promise of store approval.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        }
+      },
+      "required": [
+        "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "build_installs",
+    "title": "Who installed a build",
+    "description": "Installs of one build, newest first (up to 200): device, OS version, model, country and the tester when known, with totals by device and country. Read only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        }
+      },
+      "required": [
+        "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "build_install_issues",
+    "title": "Why a tester cannot install a build",
+    "description": "Why testers' phones may refuse one build: signing (App Store or unsigned), profile expired or ending soon, no devices in the profile, Developer Mode, enterprise trust, test key, plus the minimum iOS or Android version, and how many devices the profile lists. Use it to answer \"my tester cannot install\". Pass the tester's UDID to check their device too. Read only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        },
+        "udid": {
+          "type": "string",
+          "description": "Tester device UDID (optional)"
+        }
+      },
+      "required": [
+        "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "export_test_plan",
+    "title": "Export the test plan for Firebase or Maestro",
+    "description": "The build's AI test plan as a file other tools run: format \"firebase\" gives Firebase App Testing agent test cases (YAML for firebase apptesting:execute --test-dir, Android only, preview), \"maestro\" a Maestro starter flow with a screenshot and an assertWithAI check per task. Needs a plan (test_plan with generate: true). Read only. Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "firebase",
+            "maestro"
+          ],
+          "default": "firebase"
+        }
+      },
+      "required": [
+        "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "test_plan",
+    "title": "Test plan for a build",
+    "description": "The AI test plan of a build: up to 15 tasks ordered by risk, each with steps and the fact it comes from (a new permission, a minimum OS change, a readiness finding, the release notes), and which tasks the team ticked as done. Pass generate: true to write a new plan when there is none or the build changed; that uses 1 AI action of the account (Developer role). focus narrows it, for example \"payments\".",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        },
+        "generate": {
+          "type": "boolean",
+          "default": false
+        },
+        "focus": {
+          "type": "string",
+          "description": "Optional area to focus on, with generate"
+        }
+      },
+      "required": [
+        "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_feedback",
+    "title": "Tester feedback",
+    "description": "Feedback testers sent from install pages: bug reports, suggestions and other notes, newest first, with the device, OS, build and how many screenshots or recordings came with it (open them in the dashboard link). Read only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Optional build id or install link slug"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "resolved",
+            "all"
+          ],
+          "default": "open"
+        },
+        "blockers": {
+          "type": "boolean",
+          "description": "Only reports marked as release blockers"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "recent_activity",
+    "title": "Workspace activity",
+    "description": "What happened in the workspace, newest first: uploads, channel changes, tester feedback, tasks, release checklist ticks, link controls and issues sent to trackers, each with who did it. Optional project id and kind. Read only. Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "type": "integer"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "build",
+            "channel",
+            "feedback",
+            "task",
+            "release",
+            "link",
+            "tracker",
+            "tester"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "default": 30,
+          "maximum": 100
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "task_from_feedback",
+    "title": "Make a task from tester feedback",
+    "description": "Add a task to the project's task board from one feedback report, linked to its build. Once per report. Ask the person first and pass confirm: true. Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Feedback id from list_feedback"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "id",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "send_feedback_to_tracker",
+    "title": "Send tester feedback to Linear or Jira",
+    "description": "Create an issue in the workspace's connected Linear or Jira from one feedback report, with its text, device facts and screenshots. A report is sent once; the answer has the issue key and link. Ask the person first and pass confirm: true. Pro and Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Feedback id from list_feedback"
+        },
+        "tracker": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "jira"
+          ]
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "id",
+        "tracker",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "resolve_feedback",
+    "title": "Mark tester feedback resolved",
+    "description": "Mark a feedback report as resolved (for example after the fix is in a new build), or open it again with reopen: true. Ask the person first and pass confirm: true. Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Feedback id from list_feedback"
+        },
+        "reopen": {
+          "type": "boolean",
+          "default": false
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "id",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "release_checklist",
+    "title": "Release checklist of a build",
+    "description": "The workspace release checklist with what is ticked on this build, the open release blockers of its project, and whether the gated channel (Live by default) would take it. Read only. Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        }
+      },
+      "required": [
+        "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "tick_release_step",
+    "title": "Tick a release checklist step",
+    "description": "Tick (or untick with done: false) one step of the release checklist on a build, by its key from release_checklist. Only tick what the person says was really done. Ask the person first and pass confirm: true. Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        },
+        "key": {
+          "type": "string",
+          "description": "Step key from release_checklist"
+        },
+        "done": {
+          "type": "boolean",
+          "default": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "build",
+        "key",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "promote_build",
+    "title": "Put a build into a channel",
+    "description": "Make a build the newest in a channel (for example beta or live) so the channel link and QR code open it. Using an older build rolls the link back; apps already installed are not changed. On Team the gated channel (Live by default) refuses a build until its release checklist is ticked and no release blocker is open; see release_checklist. Ask the person first and pass confirm: true. Pro and Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        },
+        "channel": {
+          "type": "string",
+          "description": "Channel name, created on first use"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "build",
+        "channel",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "set_link_controls",
+    "title": "Pause or limit an install link",
+    "description": "Change the controls of one build's install link: pause or resume it, set a stop date after which it takes no installs (ISO date time, null removes it), or an install limit (null removes it). Leave out what should stay as it is. Builds already installed are not affected. Ask the person first and pass confirm: true. Pro and Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        },
+        "paused": {
+          "type": "boolean",
+          "description": "true pauses the link, false turns it back on"
+        },
+        "stopAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "ISO 8601 date time, for example 2026-12-31T23:59:59Z, or null for no stop date"
+        },
+        "maxInstalls": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Install limit, or null for none"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "build",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "set_channel_address",
+    "title": "Pick a channel address",
+    "description": "Give a channel its own address, for example /c/acme-beta: 3 to 40 lower case letters, digits and hyphens, unique on AppForShare. The old address keeps redirecting for 30 days and the in-app update check on it keeps working; old addresses are never given to anyone else. Name the app by bundle id (app) or project id. Ask the person first and pass confirm: true. Pro and Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "type": "string",
+          "description": "Channel name such as beta"
+        },
+        "slug": {
+          "type": "string",
+          "description": "New address, for example acme-beta"
+        },
+        "app": {
+          "type": "string",
+          "description": "Bundle id or package name of the app"
+        },
+        "project": {
+          "type": "integer",
+          "description": "Project id, instead of app"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "channel",
+        "slug",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "set_testflight_link",
+    "title": "TestFlight link on a channel",
+    "description": "Add the TestFlight public link (https://testflight.apple.com/join/...) to a channel such as beta, so iPhone and iPad visitors of the channel link go to TestFlight while Android visitors still get the newest APK, with one link and QR code. Pass url: null to remove it. Name the app by bundle id (app) or project id. Ask the person first and pass confirm: true. Pro and Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "type": "string",
+          "description": "Channel name such as beta, created on first use"
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "TestFlight public link, or null to remove it"
+        },
+        "app": {
+          "type": "string",
+          "description": "Bundle id or package name of the app"
+        },
+        "project": {
+          "type": "integer",
+          "description": "Project id, instead of app"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "channel",
+        "url",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "delete_build",
+    "title": "Delete a build",
+    "description": "Delete a build. Its install link stops working at once; it can be restored from the dashboard for 7 days. Ask the person first and pass confirm: true. Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "build",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "email_build_link",
+    "title": "Email the install link",
+    "description": "Email one build's install link to up to 5 addresses (one plain mail each, no tracking; an address that already got this build is skipped). Not for private projects: add testers there. Ask the person first and pass confirm: true. Developer role. Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        },
+        "emails": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 5
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "build",
+        "emails",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "release_status",
+    "title": "App Store and Google Play release status",
+    "description": "Release status of the apps shared from connected App Store Connect and Google Play accounts: App Store versions and review state, recent TestFlight builds, Google Play tracks and rollout, plus recent changes. Read only. Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "string",
+          "description": "Optional bundle id, package name or app name to narrow the result"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_reviews",
+    "title": "Store reviews",
+    "description": "Customer reviews of the shared App Store and Google Play apps from the reviews inbox. Read only: replies are written and posted by a person in the dashboard. Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "view": {
+          "type": "string",
+          "enum": [
+            "open",
+            "replied",
+            "all"
+          ],
+          "default": "open",
+          "description": "open = needs a reply"
+        },
+        "rating": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "app": {
+          "type": "integer",
+          "description": "App id from release_status"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_testers",
+    "title": "List testers",
+    "description": "Testers of the workspace with their projects and groups, optionally only those of one project (id) or one group (name). Read only. Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "type": "integer",
+          "description": "Project id from list_projects"
+        },
+        "group": {
+          "type": "string",
+          "description": "Tester group name"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_tester_groups",
+    "title": "List tester groups",
+    "description": "Tester groups of the workspace with member counts and the projects each group can install. Read only. Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "add_testers",
+    "title": "Add testers",
+    "description": "Add email addresses as testers, optionally to a project (id) and to tester groups (names). New testers get an invite email unless notify is false. Ask the person first and pass confirm: true. Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "emails": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100
+        },
+        "project": {
+          "type": "integer",
+          "description": "Project id from list_projects"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tester group names"
+        },
+        "notify": {
+          "type": "boolean",
+          "default": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "emails",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "remove_testers",
+    "title": "Remove testers",
+    "description": "With a project id: take away the access given by hand to that project (access through a group stays). Without: remove the testers from the workspace. Ask the person first and pass confirm: true. Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "emails": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100
+        },
+        "project": {
+          "type": "integer"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "emails",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "share_build_with_testers",
+    "title": "Share a build with groups and testers",
+    "description": "Give tester groups (names) and testers (emails) the project of an uploaded build and email them its install link. Ask the person first and pass confirm: true. Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "testers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notify": {
+          "type": "boolean",
+          "default": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "build",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  }
+]

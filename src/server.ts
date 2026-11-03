@@ -5,8 +5,9 @@
 import { closeSync, openSync, readSync, statSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import { createInterface } from 'node:readline';
+import SNAPSHOT from './tools-snapshot.json';
 
-const VERSION = '1.0.1';
+const VERSION = '1.0.4';
 const TOKEN = process.env.APPFORSHARE_TOKEN ?? '';
 const API = (process.env.APPFORSHARE_API ?? 'https://appforshare.io').replace(/\/$/, '');
 const UA = `appforshare-mcp/${VERSION}`;
@@ -174,6 +175,9 @@ async function handle(m: Rpc): Promise<void> {
         } catch (err) {
           log((err as Error).message);
         }
+        // No token yet (or offline): show the tool list shipped with this version, so the person and directories
+        // can see every tool. Calls still need APPFORSHARE_TOKEN.
+        if (!tools.length) tools = SNAPSHOT;
         return reply({ tools: [UPLOAD_TOOL, ...tools] });
       }
       case 'tools/call': {

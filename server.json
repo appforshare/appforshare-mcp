@@ -4,7 +4,20 @@
   "title": "AppForShare",
   "description": "Share iOS and Android test builds: upload, install links, testers, store readiness and releases.",
   "websiteUrl": "https://appforshare.io/docs/mcp",
-  "version": "1.0.2",
+  "repository": {
+    "url": "https://github.com/appforshare/appforshare-mcp",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://appforshare.io/icons/AppForShare-icon-dark-512.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
+    }
+  ],
+  "version": "1.0.4",
   "remotes": [
     {
       "type": "streamable-http",
@@ -15,8 +28,10 @@
     {
       "registryType": "npm",
       "identifier": "appforshare-mcp",
-      "version": "1.0.2",
-      "transport": { "type": "stdio" },
+      "version": "1.0.4",
+      "transport": {
+        "type": "stdio"
+      },
       "environmentVariables": [
         {
           "name": "APPFORSHARE_TOKEN",
