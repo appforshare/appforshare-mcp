@@ -1,5 +1,7 @@
 # appforshare-mcp
 
+<img src="assets/logo-400.png" alt="AppForShare" width="96" height="96">
+
 MCP server for [AppForShare](https://appforshare.io). Lets Claude Code, Cursor, Codex, VS Code, Gemini CLI and other
 MCP clients upload iOS and Android builds, find install links, read the store readiness check and follow App Store
 and Google Play releases and reviews.
