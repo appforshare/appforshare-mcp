@@ -1,0 +1,31 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.appforshare/appforshare",
+  "title": "AppForShare",
+  "description": "Share iOS and Android test builds: upload, install links, testers, store readiness and releases.",
+  "websiteUrl": "https://appforshare.io/docs/mcp",
+  "version": "1.0.2",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://appforshare.io/api/mcp"
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "appforshare-mcp",
+      "version": "1.0.2",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "APPFORSHARE_TOKEN",
+          "description": "AppForShare API token (Settings, API tokens; Pro and Team)",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

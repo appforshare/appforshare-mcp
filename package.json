@@ -1,0 +1,38 @@
+{
+  "name": "appforshare-mcp",
+  "mcpName": "io.appforshare/appforshare",
+  "version": "1.0.2",
+  "description": "AppForShare MCP server for Claude Code, Cursor, Codex and other AI tools: upload iOS and Android builds, get install links, check store readiness and follow App Store and Google Play releases.",
+  "license": "MIT",
+  "author": "AppForShare",
+  "homepage": "https://appforshare.io/docs/mcp",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ios",
+    "android",
+    "ipa",
+    "apk",
+    "testflight",
+    "app-distribution",
+    "beta-testing"
+  ],
+  "bin": {
+    "appforshare-mcp": "dist/server.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/server.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "~5.9.3"
+  }
+}
