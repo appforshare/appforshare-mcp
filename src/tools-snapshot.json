@@ -526,6 +526,141 @@
     }
   },
   {
+    "name": "retire_build",
+    "title": "Retire a test build",
+    "description": "Mark one build as retired (\"use a newer build\"), for example when it crashes on start: its install link takes no installs, its page sends testers to the newest build of the same app and platform, channels skip it (a channel falls back to the build before), and the update check answers retired: true and minBuild for it. Optional reason (up to 200 characters) is shown to testers. undo: true brings it back. Ask the person first and pass confirm: true. Pro and Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Shown to testers, for example Crashes on login, use 2.5 (122)"
+        },
+        "undo": {
+          "type": "boolean",
+          "description": "true brings a retired build back"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "build",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_build_links",
+    "title": "List extra share links of a build",
+    "description": "The extra share links of one build: label, URL, install count, whether a password is set, stop date, install cap and state (LIVE, or why it takes no installs), with the plan limit (Pro 3, Team 20 per build). Read only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        }
+      },
+      "required": [
+        "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "add_build_link",
+    "title": "Add an extra share link to a build",
+    "description": "Make another install link for one build, for example one per client, with its own label, optional password (4 to 128 characters), optional stop date (ISO date time) and optional install cap. It opens the same install page with its own count; the build's pause, stop date and cap still apply. Returns the new URL. Ask the person first and pass confirm: true. Pro (3 per build) and Team (20 per build), Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 60,
+          "description": "Name for the owner, for example Client A (testers do not see it)"
+        },
+        "password": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 128,
+          "description": "Password for this link only"
+        },
+        "expiresAt": {
+          "type": "string",
+          "description": "Stop date, ISO 8601 date time, for example 2026-12-31T23:59:59Z"
+        },
+        "maxInstalls": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Install cap for this link"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "build",
+        "label",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "remove_build_link",
+    "title": "Remove an extra share link",
+    "description": "Turn off one extra share link (by its slug from list_build_links). Its page says the link was turned off; the build and its other links keep working. This cannot be undone. Ask the person first and pass confirm: true. Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "link": {
+          "type": "string",
+          "description": "Slug of the extra link"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "link",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
     "name": "set_channel_address",
     "title": "Pick a channel address",
     "description": "Give a channel its own address, for example /c/acme-beta: 3 to 40 lower case letters, digits and hyphens, unique on AppForShare. The old address keeps redirecting for 30 days and the in-app update check on it keeps working; old addresses are never given to anyone else. Name the app by bundle id (app) or project id. Ask the person first and pass confirm: true. Pro and Team, Developer role.",

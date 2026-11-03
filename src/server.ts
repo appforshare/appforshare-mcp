@@ -7,7 +7,7 @@ import { basename, resolve } from 'node:path';
 import { createInterface } from 'node:readline';
 import SNAPSHOT from './tools-snapshot.json';
 
-const VERSION = '1.0.4';
+const VERSION = '1.0.5';
 const TOKEN = process.env.APPFORSHARE_TOKEN ?? '';
 const API = (process.env.APPFORSHARE_API ?? 'https://appforshare.io').replace(/\/$/, '');
 const UA = `appforshare-mcp/${VERSION}`;
