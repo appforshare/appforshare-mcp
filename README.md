@@ -1,5 +1,7 @@
 # appforshare-mcp
 
+[![mcptry](https://mcptry.com/badge/io.appforshare/appforshare)](https://mcptry.com/servers/io.appforshare/appforshare)
+
 <img src="assets/logo-400.png" alt="AppForShare" width="96" height="96">
 
 MCP server for [AppForShare](https://appforshare.io). Lets Claude Code, Cursor, Codex, VS Code, Gemini CLI and other
