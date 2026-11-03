@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "appforshare",
+  "version": "1.0.2",
+  "description": "Share iOS and Android test builds: upload, install links, testers, store readiness and releases.",
+  "author": { "name": "AppForShare", "url": "https://appforshare.io" },
+  "homepage": "https://appforshare.io/docs/mcp",
+  "repository": "https://github.com/appforshare/appforshare-mcp",
+  "license": "MIT",
+  "keywords": ["ios", "android", "beta testing", "app distribution", "testflight", "ipa", "apk"]
+}
