@@ -43,6 +43,14 @@ No local uploads needed? Use the hosted server instead: `https://appforshare.io/
 
 Environment: `APPFORSHARE_TOKEN` (required), `APPFORSHARE_API` (default `https://appforshare.io`).
 
+## Agent skill
+
+[`skills/appforshare`](skills/appforshare) is an agent skill (a folder with a `SKILL.md`) that tells Claude Code,
+Codex and other agents that load skills when to upload, which tools and CLI flags to use, how to read the store
+readiness result, and which actions need the person's confirmation. It points to the hosted OAuth server first and
+to `npx appforshare` as the fallback. Copy the folder to `~/.claude/skills/` (Claude Code, all projects),
+`.claude/skills/` in a project, or `~/.agents/skills/` (Codex). Free to use; the tools it calls need Pro or Team.
+
 MIT licence.
 
 ## Registry

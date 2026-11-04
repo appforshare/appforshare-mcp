@@ -227,6 +227,37 @@
     }
   },
   {
+    "name": "github_build_run",
+    "title": "GitHub build runs and why one failed",
+    "description": "iOS and Android builds AppForShare started on the workspace's GitHub Actions. Without run: the recent runs, newest first, with their result. With run (an id from that list): that run, and for a failed one the AI explanation of the likely cause and the fix steps, written from the failed job's log with secrets taken out (shown when AppForShare already made one). Pass explain: true to make one when there is none (1 AI action of the account, Developer role); it never changes code or the repository. Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "run": {
+          "type": "integer",
+          "description": "Run id from the list"
+        },
+        "explain": {
+          "type": "boolean",
+          "default": false,
+          "description": "Make the AI explanation of a failed run when there is none (1 AI action)"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "default": 10
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
     "name": "list_feedback",
     "title": "Tester feedback",
     "description": "Feedback testers sent from install pages: bug reports, suggestions and other notes, newest first, with the device, OS, build and how many screenshots or recordings came with it (open them in the dashboard link). Read only.",
@@ -391,7 +422,7 @@
   {
     "name": "release_checklist",
     "title": "Release checklist of a build",
-    "description": "The workspace release checklist with what is ticked on this build, the open release blockers of its project, and whether the gated channel (Live by default) would take it. Read only. Team.",
+    "description": "The workspace release checklist with what is ticked on this build, its named approvals (who approves each approval step, approved, rejected with a note, or pending), the open release blockers of its project, and whether the gated channel (Live by default) would take it. Read only: approvals are given only by the approver signed in to the dashboard, never by an AI tool. Team.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -410,9 +441,35 @@
     }
   },
   {
+    "name": "release_overview",
+    "title": "Release page of a version",
+    "description": "One version of an app in one answer, like the release page: its iOS and Android builds with channels and store readiness, the release checklist and approvals of the newest build per platform, open release blockers from tester feedback, App Store and TestFlight state, Google Play tracks with rollout percentage, and a timeline of who did what. Give the version (like 2.4.0) and the app as its bundle id or package name, or a project id. Without a version it lists the versions. Read only. Team (Pro gets it without the checklist).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Version as in the build, like 2.4.0. Leave out to list versions."
+        },
+        "app": {
+          "type": "string",
+          "description": "Bundle id (iOS) or package name (Android)"
+        },
+        "project": {
+          "type": "integer",
+          "description": "Project id from list_projects"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
     "name": "tick_release_step",
     "title": "Tick a release checklist step",
-    "description": "Tick (or untick with done: false) one step of the release checklist on a build, by its key from release_checklist. Only tick what the person says was really done. Ask the person first and pass confirm: true. Team, Developer role.",
+    "description": "Tick (or untick with done: false) one step of the release checklist on a build, by its key from release_checklist. Only tick what the person says was really done. Approval steps (those with an approver) cannot be ticked or approved here; the approver answers them in the dashboard. Ask the person first and pass confirm: true. Team, Developer role.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -482,7 +539,7 @@
   {
     "name": "set_link_controls",
     "title": "Pause or limit an install link",
-    "description": "Change the controls of one build's install link: pause or resume it, set a stop date after which it takes no installs (ISO date time, null removes it), or an install limit (null removes it). Leave out what should stay as it is. Builds already installed are not affected. Ask the person first and pass confirm: true. Pro and Team, Developer role.",
+    "description": "Change the controls of one build's install link: pause or resume it, set a start time before which it takes no installs (testers see when it opens and can ask for one email then; ISO date time, null opens it now), a stop date after which it takes no installs (ISO date time, null removes it), or an install limit (null removes it). The start must be before the stop date. Leave out what should stay as it is. Builds already installed are not affected. Ask the person first and pass confirm: true. Pro and Team, Developer role.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -493,6 +550,13 @@
         "paused": {
           "type": "boolean",
           "description": "true pauses the link, false turns it back on"
+        },
+        "startAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Opens for installs at this ISO 8601 date time, for example 2026-12-01T09:00:00Z, or null to open now"
         },
         "stopAt": {
           "type": [
@@ -586,7 +650,7 @@
   {
     "name": "add_build_link",
     "title": "Add an extra share link to a build",
-    "description": "Make another install link for one build, for example one per client, with its own label, optional password (4 to 128 characters), optional stop date (ISO date time) and optional install cap. It opens the same install page with its own count; the build's pause, stop date and cap still apply. Returns the new URL. Ask the person first and pass confirm: true. Pro (3 per build) and Team (20 per build), Developer role.",
+    "description": "Make another install link for one build, for example one per client, with its own label, optional password (4 to 128 characters), optional start time and stop date (ISO date times, start before stop) and optional install cap. It opens the same install page with its own count; the build's pause, stop date and cap still apply. Returns the new URL. Ask the person first and pass confirm: true. Pro (3 per build) and Team (20 per build), Developer role.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -608,6 +672,10 @@
         "expiresAt": {
           "type": "string",
           "description": "Stop date, ISO 8601 date time, for example 2026-12-31T23:59:59Z"
+        },
+        "startAt": {
+          "type": "string",
+          "description": "Opens for installs at this ISO 8601 date time, for example 2026-12-01T09:00:00Z"
         },
         "maxInstalls": {
           "type": "integer",
@@ -650,6 +718,95 @@
       },
       "required": [
         "link",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_access_codes",
+    "title": "List access codes of a build or extra link",
+    "description": "The per tester access codes of a build's own page (build id or slug) or of one extra link (its slug): label, devices used of the allowed count, state (ACTIVE, USED or REVOKED) and when it was made. The codes themselves are never shown again after they are made. Up to 25 per page. Team. Read only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "type": "string",
+          "description": "Build id, build slug, or the slug of an extra link"
+        }
+      },
+      "required": [
+        "target"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "create_access_code",
+    "title": "Create a per tester access code",
+    "description": "Make a one off access code for a build's own page or for one extra link, with a label (the client or person it is for) and a device count (1 to 50, default 1). A tester types it on the install page instead of the shared password; each install takes one device off the code. Returns the code once: give it to the person, it cannot be shown again. Ask the person first and pass confirm: true. Team, Owner or Admin role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "type": "string",
+          "description": "Build id, build slug, or the slug of an extra link"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 60,
+          "description": "Who it is for, for example Ana at Client A (testers do not see it)"
+        },
+        "maxInstalls": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Devices the code may install on (default 1)"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "target",
+        "label",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "revoke_access_code",
+    "title": "Revoke an access code",
+    "description": "Turn off one access code (by its id from list_access_codes). It stops opening the page at once; installs already made stay, and the shared password and other codes keep working. This cannot be undone. Ask the person first and pass confirm: true. Owner or Admin role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Access code id"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "id",
         "confirm"
       ]
     },
@@ -1022,6 +1179,125 @@
       "destructiveHint": false,
       "idempotentHint": true,
       "openWorldHint": true
+    }
+  },
+  {
+    "name": "release_defaults",
+    "title": "Saved release defaults of store apps",
+    "description": "Saved release defaults of the shared App Store and Google Play apps: What's New per language, phased release on or off (App Store), and the Google Play track and rollout percent used when promoting. They only fill in forms; nothing is sent to a store from them. Without app, every shared app. Read only. Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "string",
+          "description": "Bundle id, package name or app id from release_status (optional)"
+        },
+        "store": {
+          "type": "string",
+          "enum": [
+            "apple",
+            "google"
+          ],
+          "description": "Only when the same bundle id is on both stores"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "set_release_defaults",
+    "title": "Save release defaults of a store app",
+    "description": "Save the release defaults of one shared store app: whatsNew (list of { language, text }, replaces the saved list; App Store up to 4000 characters, Google Play 500), phased (App Store, true or false), playTrack and playPercent (Google Play; percent 100 = everyone, null = draft). Fields left out keep their value; null clears one. Only saved in AppForShare, never sent to a store. Ask the person first and pass confirm: true. Pro and Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "string",
+          "description": "Bundle id, package name or app id"
+        },
+        "store": {
+          "type": "string",
+          "enum": [
+            "apple",
+            "google"
+          ]
+        },
+        "whatsNew": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "language": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "language",
+              "text"
+            ]
+          },
+          "maxItems": 90
+        },
+        "phased": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "playTrack": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "playPercent": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "app",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "rollout_plan",
+    "title": "Scheduled Google Play rollout plans",
+    "description": "Scheduled staged rollout plans of one shared Google Play app: release, steps (percent and hours after the step before), which steps are done, next step time, status (ACTIVE, PAUSED, HALTED by a safeguard, STOPPED, DONE) and why. Plans are set, paused, resumed and stopped by a person in the dashboard or the CLI, never from here. Read only. Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "string",
+          "description": "Package name or app id from release_status"
+        }
+      },
+      "required": [
+        "app"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
     }
   }
 ]
