@@ -102,7 +102,7 @@
   {
     "name": "build_info",
     "title": "Build details and store readiness",
-    "description": "One build: install link, version, installs, release notes and the store readiness check (App Store and Google Play rules) with a fix for each finding. Guidance only, not a promise of store approval.",
+    "description": "One build: install link, version, installs, release notes and the store readiness check (App Store and Google Play rules) with a fix for each finding. Expo apps also get their Expo facts (SDK, expo-updates runtime version, update channel and URL, development client) and the Expo checks (development build shared with testers, test build on the production channel, runtime version against native changes). Guidance only, not a promise of store approval.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -260,7 +260,7 @@
   {
     "name": "list_feedback",
     "title": "Tester feedback",
-    "description": "Feedback testers sent from install pages: bug reports, suggestions and other notes, newest first, with the device, OS, build and how many screenshots or recordings came with it (open them in the dashboard link). Read only.",
+    "description": "Feedback testers sent from install pages and the in-app link, and on Team the TestFlight screenshot and crash feedback read from App Store Connect: bug reports, suggestions and other notes, newest first, with the source (page, app or testflight), the device, OS, build (and the TestFlight build) and how many screenshots or recordings came with it (open them in the dashboard link). Read only.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -280,6 +280,15 @@
         "blockers": {
           "type": "boolean",
           "description": "Only reports marked as release blockers"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "page",
+            "app",
+            "testflight"
+          ],
+          "description": "Only reports from the install page, the in-app link, or TestFlight (Team)"
         }
       }
     },
@@ -443,7 +452,7 @@
   {
     "name": "release_overview",
     "title": "Release page of a version",
-    "description": "One version of an app in one answer, like the release page: its iOS and Android builds with channels and store readiness, the release checklist and approvals of the newest build per platform, open release blockers from tester feedback, App Store and TestFlight state, Google Play tracks with rollout percentage, and a timeline of who did what. Give the version (like 2.4.0) and the app as its bundle id or package name, or a project id. Without a version it lists the versions. Read only. Team (Pro gets it without the checklist).",
+    "description": "One version of an app in one answer, like the release page: its iOS and Android builds with channels and store readiness, the release checklist and approvals of the newest build per platform, open release blockers from tester feedback, App Store and TestFlight state, Google Play tracks with rollout percentage, Android vitals (crash rate and ANR rate per version code from Google Play, Team, read only and never acted on), and a timeline of who did what. Give the version (like 2.4.0) and the app as its bundle id or package name, or a project id. Without a version it lists the versions. Read only. Team (Pro gets it without the checklist).",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -1293,6 +1302,27 @@
       },
       "required": [
         "app"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "store_upload_status",
+    "title": "Store sends of a build (TestFlight, Google Play)",
+    "description": "Whether a build can be sent to TestFlight (App Store signed .ipa) or a Google Play track (the kept .aab) and why not, the shared store app it would go to, and every send so far with its status (queued, sending, processing at Apple, sent, draft on Play production, failed) and the store answer. Sending is done by an Admin in the dashboard or with the CLI (appforshare store-upload), never from here. Read only. Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        }
+      },
+      "required": [
+        "build"
       ]
     },
     "annotations": {

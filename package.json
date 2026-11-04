@@ -1,7 +1,7 @@
 {
   "name": "appforshare-mcp",
   "mcpName": "io.appforshare/appforshare",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "AppForShare MCP server for Claude Code, Cursor, Codex and other AI tools: upload iOS and Android builds, get install links, check store readiness and follow App Store and Google Play releases.",
   "license": "MIT",
   "author": "AppForShare",
