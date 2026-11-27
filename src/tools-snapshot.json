@@ -1958,7 +1958,7 @@
   {
     "name": "builder_start_from_idea",
     "title": "Start a builder app from an idea",
-    "description": "First step of starting an AI App Builder app from an idea, like the New app box of the dashboard: idea = what app the person wants in a few words (\"a booking app for my yoga studio\"), kind mobile (iOS and Android, default) or web. For a document (statement of work, idea doc or spec) use builder_start_from_document of the appforshare-mcp npm server, which uploads the local file and returns the same answer; pass its intake here only to change the idea of that start. Answers intake (the id for builder_answer_questions), summary (what we understood), name (the suggested app name), questions (0 to 3, only about what the idea leaves open: each has id q1 to q3, text and chips, the suggested answers numbered from 0), designCredits (what the design step costs, given back if it fails) and creditsLeft. Free: no credits. Ask the questions one at a time in the chat with their chips, say the person may answer in their own words, pick You decide, or skip the questions, then ask for an optional note (anything else, or anything missing) and call builder_answer_questions. Developer role. Every plan with an account.",
+    "description": "First step of starting an AI App Builder app from an idea, like the New app box of the dashboard: idea = what app the person wants in a few words (\"a booking app for my yoga studio\"), kind mobile (iOS and Android, default) or web. For a document (statement of work, idea doc or spec) use builder_start_from_document of the appforshare-mcp npm server, which uploads the local file and returns the same answer; pass its intake here only to change the idea of that start. appId (optional) = the app id for Google Play and the App Store (Android package and iOS bundle id, like com.yourcompany.app; it cannot change after the first store upload): ask for it only when the person has one, else the generated one is used. Answers intake (the id for builder_answer_questions), summary (what we understood), name (the suggested app name), appId and suggestedAppId (the generated one when appId is empty), questions (0 to 3, only about what the idea leaves open: each has id q1 to q3, text and chips, the suggested answers numbered from 0), designCredits (what the design step costs, given back if it fails) and creditsLeft. Free: no credits. Ask the questions one at a time in the chat with their chips, say the person may answer in their own words, pick You decide, or skip the questions, then ask for an optional note (anything else, or anything missing) and call builder_answer_questions. Developer role. Every plan with an account.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -1977,6 +1977,10 @@
         "intake": {
           "type": "integer",
           "description": "Intake id from builder_start_from_document (optional)"
+        },
+        "appId": {
+          "type": "string",
+          "description": "Optional app id for Google Play and the App Store (Android package and iOS bundle id), like com.yourcompany.app. Cannot change after the first store upload. Leave out for the generated one (suggestedAppId)."
         }
       }
     },
@@ -2044,6 +2048,10 @@
         "note": {
           "type": "string",
           "description": "Anything else, or anything missing (optional)"
+        },
+        "appId": {
+          "type": "string",
+          "description": "Optional app id for the stores (Android package and iOS bundle id), like com.yourcompany.app; replaces the one given to builder_start_from_idea. Empty string = the generated one."
         },
         "confirm": {
           "type": "boolean",

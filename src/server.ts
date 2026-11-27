@@ -13,7 +13,7 @@ import { checkFile, InspectError } from './local/check';
 import { BACKEND_TOOL_NAMES, BACKEND_TOOLS, BackendToolError, runBackendTool } from './builder-backend';
 import { INTAKE_TOOL_NAMES, INTAKE_TOOLS, IntakeToolError, runIntakeTool } from './builder-intake';
 
-const VERSION = '1.0.14';
+const VERSION = '1.0.15';
 const TOKEN = process.env.APPFORSHARE_TOKEN ?? '';
 const API = (process.env.APPFORSHARE_API ?? 'https://appforshare.io').replace(/\/$/, '');
 const UA = `appforshare-mcp/${VERSION}`;
