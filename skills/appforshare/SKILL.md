@@ -16,9 +16,14 @@ CLI. Both work in one workspace with the person's role there.
    already available, use them. If not, tell the person how to add it, for example in Claude Code:
    `claude mcp add --transport http --scope user appforshare https://appforshare.io/api/mcp`, then `/mcp` and sign
    in. Other clients: https://appforshare.io/docs/mcp
-2. **Uploading a file from this computer.** The hosted server cannot read the disk, so it has no upload tool. Use
-   `upload_build` if the local npm server `appforshare-mcp` is connected (it adds `upload_build` and passes every
-   other tool through). Otherwise use the CLI: `npx appforshare upload <file>`.
+2. **Uploading a file from this computer.** The hosted server cannot read the disk. Use `upload_build` if the local
+   npm server `appforshare-mcp` is connected (it adds `upload_build` and `check_local_build` and passes every other
+   tool through), or the CLI: `npx appforshare upload <file>`. In a chat app without disk access (Claude or ChatGPT
+   in the browser), call `create_upload_link` and give the person the link (it works once, for 30 minutes), then
+   read the result with `check_upload`. A build that is already at a public https address (a release asset, a CI
+   artifact link) can go with `upload_from_url`.
+   To check a build before sharing it, without uploading: `check_local_build` (npm server) or
+   `npx appforshare check <file> --json`.
 3. **Fallback: the CLI, `npx appforshare`.** Needs an API token in `APPFORSHARE_TOKEN` (or `--token`), made under
    Dashboard, Settings, API tokens. Never ask the person to paste a token into the chat; ask them to set the
    environment variable themselves. Add `--json` when you need to read the result. Commands are in
@@ -27,6 +32,8 @@ CLI. Both work in one workspace with the person's role there.
 Plans: the MCP server, the CLI and API tokens are part of Pro and Team. On Free, uploads happen on the website
 (https://appforshare.io); say so instead of trying workarounds. Tools and commands marked Team below need Team.
 Call `whoami` (or `npx appforshare whoami`) when you are not sure of the plan or role.
+For "how do I ... in AppForShare" or "where is ..." questions, call `find_app_steps` and give its steps with the exact
+button names; call it before saying AppForShare cannot do something.
 
 ## 2. Upload a build
 
@@ -66,6 +73,11 @@ Each finding has `level` (`blocker`, `warning`, `info`), `title` and `fix`. Get 
 testers. The check is guidance only, never a promise of store approval; do not tell the person their app will pass
 review.
 
+For security questions about a build, use `get_security_scan` (Pro and Team) or `npx appforshare security <id|slug>`.
+Findings have `level` (`block`, `warn`, `info`), an OWASP MASVS category, `detail` and `fix`; hardcoded secrets show
+only a masked value. It is a static scan with findings and hints, not a penetration test or a certification: never
+tell the person their app is secure. For an exposed key, the first step is always to revoke or rotate it.
+
 When a tester cannot install, use `build_install_issues` (optionally with the tester's UDID) rather than the
 readiness check; it covers signing, the provisioning profile, Developer Mode and the minimum OS.
 
@@ -102,7 +114,7 @@ Always ask first, naming who is affected, for anything that sends mail or change
   `delete_build`, and their CLI commands (`promote`, `link`, `retire`, `channel-address`, `testflight`,
   `testers remove`, `delete --yes`).
 - Other changes: `tick_release_step` (only tick what the person says was really done), `resolve_feedback`,
-  `task_from_feedback`, `send_feedback_to_tracker`, `test_plan` with `generate: true` (uses 1 AI action).
+  `task_from_feedback`, `reply_to_feedback` (show the person the exact reply first), `send_feedback_to_tracker`, `test_plan` with `generate: true` (uses 1 AI action).
 
 The CLI has no confirm step of its own (only `delete` needs `--yes`), so apply the same rule before running any of
 those commands. Reading tools (`list_builds`, `latest_build`, `build_info`, `build_installs`, `list_feedback`,

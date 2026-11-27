@@ -1,8 +1,29 @@
 [
   {
+    "name": "find_app_steps",
+    "title": "Find steps in AppForShare",
+    "description": "Where to click in the AppForShare dashboard or site for a task (\"how do I add a tester\", \"where are API tokens\"): exact page, button names and numbered steps, plus whether this account can do it on its plan and team role and how to unlock it. Read only. Use it before saying AppForShare cannot do something.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string",
+          "description": "The task in plain words"
+        }
+      },
+      "required": [
+        "question"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
     "name": "whoami",
     "title": "Who am I",
-    "description": "The account, plan and role this AppForShare token works in.",
+    "description": "The account, plan and role this AppForShare token works in, and whether the workspace requires two step sign in for members (read only; the rule is set in the dashboard).",
     "inputSchema": {
       "type": "object",
       "properties": {}
@@ -28,7 +49,7 @@
   {
     "name": "list_builds",
     "title": "List builds",
-    "description": "Recent builds with install link, version, size, installs, store readiness status and channels.",
+    "description": "Recent builds with install link, version, size, installs, store readiness status, channels and the known malware check status.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -36,13 +57,15 @@
           "type": "string",
           "enum": [
             "ios",
-            "android"
+            "android",
+            "macos",
+            "windows"
           ],
-          "description": "Only iOS or only Android builds"
+          "description": "Only builds of this platform (macos and windows = desktop builds, Pro and Team)"
         },
         "app": {
           "type": "string",
-          "description": "Bundle id (iOS) or package name (Android)"
+          "description": "Bundle id (iOS, macOS) or package name (Android, Windows MSIX)"
         },
         "project": {
           "type": "integer",
@@ -76,13 +99,15 @@
           "type": "string",
           "enum": [
             "ios",
-            "android"
+            "android",
+            "macos",
+            "windows"
           ],
-          "description": "Only iOS or only Android builds"
+          "description": "Only builds of this platform (macos and windows = desktop builds, Pro and Team)"
         },
         "app": {
           "type": "string",
-          "description": "Bundle id (iOS) or package name (Android)"
+          "description": "Bundle id (iOS, macOS) or package name (Android, Windows MSIX)"
         },
         "project": {
           "type": "integer",
@@ -102,7 +127,7 @@
   {
     "name": "build_info",
     "title": "Build details and store readiness",
-    "description": "One build: install link, version, installs, release notes and the store readiness check (App Store and Google Play rules) with a fix for each finding. Expo apps also get their Expo facts (SDK, expo-updates runtime version, update channel and URL, development client) and the Expo checks (development build shared with testers, test build on the production channel, runtime version against native changes). Guidance only, not a promise of store approval.",
+    "description": "One build: install link, version, installs, release notes, permissionsPlain (each permission in plain words: what it lets the app do, the app's own iOS reason verbatim, and isNew against the previous build of the app; facts, not a safety verdict) and the store readiness check (App Store and Google Play rules) with a fix for each finding. Expo apps also get their Expo facts (SDK, expo-updates runtime version, update channel and URL, development client) and the Expo checks (development build shared with testers, test build on the production channel, runtime version against native changes). Flutter apps also get their Flutter facts (build mode, engine and Dart version, obfuscation hint, Impeller flag) and the Flutter checks (debug or profile build shared with testers). malwareScan is the check for known malware run on every upload (status pending, clean, flagged, error or skipped, and scannedAt; it only finds malware that is already known, and a flagged build is held for staff review). desktop is set for macOS and Windows builds (Pro and Team): file kind, SHA-256, minimum OS, architectures, signature (developer-id, apple, adhoc, signed, unsigned) and signer, notarization ticket stapled or not (macOS), publisher and package name; testers download the file from the install page, and readiness lists unsigned, ad hoc signed and not notarized files. Guidance only, not a promise of store approval.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -113,6 +138,48 @@
       },
       "required": [
         "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_security_scan",
+    "title": "Security scan of a build",
+    "description": "Security scan of one build, read at upload from the .ipa or .apk: hardcoded secrets (only the kind, the file and a masked value, never the full key), Android backup, exported components, R8 hint, WebView debugging and user certificates, iOS App Transport Security exceptions, symbols and get-task-allow, root, jailbreak and tamper libraries, and library versions with a known advisory. Each finding has a level (block, warn, info), an OWASP MASVS category, a detail and a fix; the summary counts them (\"1 to fix, 3 warnings\"). Findings and hints from a static scan, not a penetration test or a certification. Builds uploaded before the scan say status unknown. Read only. Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        }
+      },
+      "required": [
+        "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_install_badge",
+    "title": "Download button for a README",
+    "description": "A download button for a README or docs page: Markdown and HTML snippets with a 200 x 60 \"Install test build\" badge (dark and light) that links to the install page of a build, or to a channel link. For a channel the badge is live: it shows the version of the newest build in the channel (refreshed every 5 minutes) and the link always opens that build. Give a build id or install link slug, or a channel address (the part after /c/). The link carries ?ref=badge so visits from the button show in analytics. The badge says \"test build\" and never names a store. Read only. Free and up for builds; channels need Pro or Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "type": "string",
+          "description": "Build id, install link slug, or channel address (the part after /c/)"
+        }
+      },
+      "required": [
+        "target"
       ]
     },
     "annotations": {
@@ -260,7 +327,7 @@
   {
     "name": "list_feedback",
     "title": "Tester feedback",
-    "description": "Feedback testers sent from install pages and the in-app link, and on Team the TestFlight screenshot and crash feedback read from App Store Connect: bug reports, suggestions and other notes, newest first, with the source (page, app or testflight), the device, OS, build (and the TestFlight build) and how many screenshots or recordings came with it (open them in the dashboard link). Read only.",
+    "description": "Feedback testers sent from install pages and the in-app link, and on Team the TestFlight screenshot and crash feedback read from App Store Connect: bug reports, suggestions and other notes, newest first, with the source (page, app or testflight), the device, OS, build (and the TestFlight build) and how many screenshots or recordings came with it (open them in the dashboard link), and on Team the reply thread (team replies and tester answers). Read only.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -317,7 +384,9 @@
             "release",
             "link",
             "tracker",
-            "tester"
+            "tester",
+            "security",
+            "storage"
           ]
         },
         "limit": {
@@ -429,6 +498,40 @@
     }
   },
   {
+    "name": "reply_to_feedback",
+    "title": "Reply to tester feedback",
+    "description": "Reply to one feedback report. The reply is kept in the report's thread and the tester gets one email in the language of their install page, with the reply and a link to answer once on the install page. Only for reports where the tester left an email address (not TestFlight reports); up to 20 messages per report and 5 replies per report a day. Write the reply the person asked for, plain text up to 2000 characters, and show it to them first; then pass confirm: true. Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Feedback id from list_feedback"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "The reply, as the person approved it"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
     "name": "release_checklist",
     "title": "Release checklist of a build",
     "description": "The workspace release checklist with what is ticked on this build, its named approvals (who approves each approval step, approved, rejected with a note, or pending), the open release blockers of its project, and whether the gated channel (Live by default) would take it. Read only: approvals are given only by the approver signed in to the dashboard, never by an AI tool. Team.",
@@ -462,7 +565,7 @@
         },
         "app": {
           "type": "string",
-          "description": "Bundle id (iOS) or package name (Android)"
+          "description": "Bundle id (iOS, macOS) or package name (Android, Windows MSIX)"
         },
         "project": {
           "type": "integer",
@@ -912,6 +1015,35 @@
     }
   },
   {
+    "name": "channel_followers",
+    "title": "Channel followers",
+    "description": "How many people follow a channel by email (\"Email me new builds\" on its page): confirmed and pending counts, the plan cap and masked addresses (jo***@example.com), newest first. Followers confirm by email first and get one email per new build, at most one every 6 hours. Read only: removing a follower is in the dashboard or the CLI. Name the app by bundle id (app) or project id. Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "type": "string",
+          "description": "Channel name such as beta"
+        },
+        "app": {
+          "type": "string",
+          "description": "Bundle id or package name of the app"
+        },
+        "project": {
+          "type": "integer",
+          "description": "Project id, instead of app"
+        }
+      },
+      "required": [
+        "channel"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
     "name": "delete_build",
     "title": "Delete a build",
     "description": "Delete a build. Its install link stops working at once; it can be restored from the dashboard for 7 days. Ask the person first and pass confirm: true. Developer role.",
@@ -936,6 +1068,199 @@
       "readOnlyHint": false,
       "destructiveHint": true,
       "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "restore_build",
+    "title": "Restore a deleted build",
+    "description": "Bring back a build that was deleted in the last 7 days: its install link works again with the same address. Without a build, lists the builds that can still be restored. Builds removed by AppForShare staff cannot be restored here. Ask the person first and pass confirm: true. Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or slug of the deleted build; leave out to list what can be restored"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "resign_build",
+    "title": "Re-sign an iOS build with a new profile",
+    "description": "Re-sign an iOS build with a new provisioning profile, for example after new test iPhones were added to the ad hoc profile, so testers can install without a new build from Xcode or CI. AppForShare signs a copy with the workspace's signing certificate (an Admin adds the .p12 once in Settings) and saves it as a NEW build (\"re-signed from build X\", same release notes, new SHA-256); the original build and its sign-offs stay as they were. Bundle ID, version and build number never change. Profiles come from the connected App Store Connect key: pass profile names or ids, or leave out for the best active ad hoc, development or enterprise profile of the app. App Store profiles are refused. Without confirm: the check only (profiles, certificate, devices added or dropped, problems). With confirm: true (ask the person first) the re-sign is queued; follow it with build_info (resign.lastResign). Developer role. Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Names or ids of profiles on the connected Apple account (optional; leave out for the best one for the app)"
+        },
+        "mergeEntitlements": {
+          "type": "boolean",
+          "description": "Keep the app's own entitlements where the profile allows them (default: entitlements from the profile)"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "cleanup_preview",
+    "title": "Preview a clean up of old builds",
+    "description": "Which builds of a project an automatic clean up would move to the 7 day restore list right now, the storage it would free, and which old builds it keeps on purpose (newest build of each platform, a channel's current build, builds in a client delivery, builds sent to TestFlight or Google Play in the last 90 days, builds marked keep). Uses the project's saved rule, or keep (newest N per platform, 5 to 200) and olderDays (30, 60, 90 or 180) if given; with both, a build goes only when it breaks both. Read only: nothing is deleted. The rule is set on the project's Testing page; a person runs a clean up with the CLI (appforshare cleanup). Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "type": "integer",
+          "description": "Project id from list_projects"
+        },
+        "keep": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 200,
+          "description": "Keep the newest N builds per platform"
+        },
+        "olderDays": {
+          "type": "integer",
+          "enum": [
+            30,
+            60,
+            90,
+            180
+          ],
+          "description": "Remove builds older than this many days"
+        }
+      },
+      "required": [
+        "project"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "list_webhooks",
+    "title": "List webhooks and recent deliveries",
+    "description": "Slack, Microsoft Teams, Google Chat, Discord, Telegram, Webex and generic webhooks of the workspace: name, kind, events, project, on or off, failures, last error, and with webhook (an id) its last 30 deliveries (event, delivered or failed, HTTP status, error). Never returns a webhook URL or signing secret. Adding or changing webhooks is done in the dashboard; a person can resend a delivery with the CLI (appforshare webhooks redeliver). Read only. Pro and Team, Owner or Admin.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "webhook": {
+          "type": "integer",
+          "description": "Webhook id: also return its recent deliveries"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "create_upload_link",
+    "title": "Make a one time upload link",
+    "description": "Make a link where the person drops an .ipa, .apk or .aab (on Pro and Team also a desktop build: .dmg, .pkg, zipped .app, .msix, .msixbundle, .appx, .appxbundle or .msi) in a browser, for chat assistants that cannot read files on their computer. The link works once, for 30 minutes, on any device, without signing in; the build goes into this workspace as the person who connected, with the plan's limits. Give the person the url, then call check_upload with the ticket for the install link and store readiness. Optional release notes and a channel. Pro and Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "notes": {
+          "type": "string",
+          "description": "Release notes shown to testers"
+        },
+        "channel": {
+          "type": "string",
+          "description": "Put the build into this channel (such as beta) when it is ready"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "upload_from_url",
+    "title": "Upload a build from a URL",
+    "description": "Upload an .ipa, .apk or .aab (or a desktop build: .dmg, .pkg, zipped .app, .msix, .msixbundle, .appx, .appxbundle, .msi) that is at a public https URL, such as a GitHub release asset or a signed CI artifact link: AppForShare checks the size first, then downloads it into this workspace. Links that need a sign in, plain http, and private or local addresses are refused. Returns a ticket; call check_upload with it for progress, the install link and store readiness. Optional release notes and a channel. Pro and Team, Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "https URL of the build file (.ipa, .apk, .aab or a desktop build)"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Release notes shown to testers"
+        },
+        "channel": {
+          "type": "string",
+          "description": "Put the build into this channel (such as beta) when it is ready"
+        }
+      },
+      "required": [
+        "url"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "check_upload",
+    "title": "Result of an upload link or URL upload",
+    "description": "State of an upload started with create_upload_link or upload_from_url in this workspace: waiting (link not used yet), expired, uploading (with bytes received), processing, ready (install link, and the store readiness check with a fix for each finding) or failed (with the reason). Read only.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "ticket": {
+          "type": "string",
+          "description": "Ticket from create_upload_link or upload_from_url"
+        }
+      },
+      "required": [
+        "ticket"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
       "openWorldHint": false
     }
   },
@@ -1289,6 +1614,32 @@
     }
   },
   {
+    "name": "get_store_pages",
+    "title": "Store pages of store apps",
+    "description": "Store pages of the shared App Store and Google Play apps: the privacy policy, support and account deletion page addresses, status (draft, live, lapsing = the plan no longer covers it and it goes down on downAt, down), unpublished changes, what is still missing before publishing, and the facts read from the newest build (permissions in plain words, iOS reasons, recognised SDKs). The pages are written from the owner's answers; they are not legal advice and do not make an app compliant or approved by a store. Editing, the AI draft and publishing happen in the dashboard or the CLI, never from here. Without app, every shared app. Read only. Pro (one app) and Team (every app).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "string",
+          "description": "Bundle id, package name, app id or page address code (optional)"
+        },
+        "store": {
+          "type": "string",
+          "enum": [
+            "apple",
+            "google"
+          ],
+          "description": "Only when the same bundle id is on both stores"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
     "name": "rollout_plan",
     "title": "Scheduled Google Play rollout plans",
     "description": "Scheduled staged rollout plans of one shared Google Play app: release, steps (percent and hours after the step before), which steps are done, next step time, status (ACTIVE, PAUSED, HALTED by a safeguard, STOPPED, DONE) and why. Plans are set, paused, resumed and stopped by a person in the dashboard or the CLI, never from here. Read only. Team.",
@@ -1312,7 +1663,7 @@
   {
     "name": "store_upload_status",
     "title": "Store sends of a build (TestFlight, Google Play)",
-    "description": "Whether a build can be sent to TestFlight (App Store signed .ipa) or a Google Play track (the kept .aab) and why not, the shared store app it would go to, and every send so far with its status (queued, sending, processing at Apple, sent, draft on Play production, failed) and the store answer. Sending is done by an Admin in the dashboard or with the CLI (appforshare store-upload), never from here. Read only. Pro and Team.",
+    "description": "Whether a build can be sent to TestFlight (App Store signed .ipa) or a Google Play track (the kept .aab) and why not, the shared store app it would go to, and every send so far with its status (queued, sending, processing at Apple, finishing = waiting for Apple to process the build before the send options, sent, draft on Play production, failed) and the store answer. Each send lists the options the Admin picked (TestFlight What to Test, TestFlight groups and beta review on Team; Google Play release name, in-app update priority, changes not sent for review) and what happened to each. Sending and picking options is done by an Admin in the dashboard or with the CLI (appforshare store-upload, upload --store-upload), never from here. Read only. Pro and Team.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -1328,6 +1679,904 @@
     "annotations": {
       "readOnlyHint": true,
       "openWorldHint": false
+    }
+  },
+  {
+    "name": "intune_status",
+    "title": "Microsoft Intune sends of a build",
+    "description": "Whether a build can be sent to the workspace's Microsoft Intune as a line of business app (an enterprise or ad hoc signed .ipa, or an APK; App Store or development signed .ipa files and .aab uploads cannot) and why not, the status of the Intune connection (OK, ERROR with the reason in plain words, or not connected; never the client secret), and every send so far: new app or new version, Intune app name and id, status (queued, sending, sent, failed) and the result. AppForShare only hands the file to Intune; assignment to groups stays in Intune. Sending is done by an Admin in the dashboard or with the CLI (appforshare store-upload <build> --to intune --yes), never from here. Read only. Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        }
+      },
+      "required": [
+        "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "android_store_status",
+    "title": "Android store listing status",
+    "description": "The AppForShare Android store listings of this workspace: status (DRAFT = setup not finished, READY = waiting for the first store build, LISTED, SUSPENDED) and what is still missing, the package name claim (verified, pending, failed with the reason, or disputed; a dispute is settled automatically from the evidence, proof of the signing key beating a repository token file), the source repository, tag and build variant, the releases with their status (QUEUED = waiting for the author's GitHub Actions build, PENDING = waiting for our own builder for GitLab and plain git sources, PENDING_REVIEW = APK received, automatic review checks running, IN_REVIEW = a clean update on its short hold before it is approved by itself, APPROVED = reviewed and ready for signing, SIGNING, SIGNED = signed APK stored with its SHA-256, size and certificate, PUBLISHED = live in the AppForShare store, SIGN_FAILED with the reason (retried by itself, then Try signing again in the Store tab), REJECTED with the reason and the fix; every release is reviewed automatically by our checks and an AI review, and staff can review any decision later; each release carries its review: decidedBy AUTO or STAFF, the reasons it needed a decision, the findings in plain words, the time of the automatic approval, the rejection reason, the fix, and whether the author can ask once for a re-review or use Recheck in the Store tab), the signing of the listing (mode STORE_KEY = AppForShare signs with a key made for this app, AUTHOR_SIGNS = the author signs each release with the CLI appforshare store sign, OWN_KEY = AppForShare signs with the imported keystore of the author, Team; the certificate SHA-256 users will see, fixed by the first signed release; never key material), the targets of each release (afs = the AppForShare store, play = Google Play, appstore = the App Store, each with its own status: WAITING, QUEUED, SENDING, PROCESSING, LIVE, DRAFT = a Play production draft, FAILED with the reason, WITHDRAWN; sends to Google Play and the App Store are made by an Admin in the Store tab or with the CLI appforshare store send, never from here), the GitHub Actions store builds (PENDING_REVIEW = accepted, REJECTED with the reason in plain words, SHA-256, versionCode, run link) with the workflow block to add to the repository, and the public page address. Without project or app, every store app in short. Setting up, claiming and starting releases happen in the Store tab of the project, never from here. No secrets (the webhook secret is never shown). Read only. Every plan with an account.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "type": "integer",
+          "description": "Project id from list_projects (optional)"
+        },
+        "app": {
+          "type": "string",
+          "description": "Android package name, for example com.example.app (optional)"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "android_store_publish_upload",
+    "title": "Publish an APK upload in the Android store",
+    "description": "Publishes an APK this workspace uploaded to AppForShare in the AppForShare Android store (upload track: the developer's own signed APK, badge \"Uploaded by developer\"; the source track stays \"Built from source\"). check: true (or no confirm) only answers what would happen: mode new (first listing), update (a newer version of the upload listing) or source (listed from source, push a tag instead), what we read from the APK, the problems with their fix (debug or test only build, target below API 24, versionCode not higher, another signing key than earlier releases, the spyware permission set, size over the plan), the sensitive permissions that need a reason, and the plan. To publish, ask the person first and pass confirm: true. A first listing needs summary (up to 80 characters), categories, privacyPolicyUrl and ratingAnswers (all none for an app without mature content, ask the person); an update needs nothing but an optional changelog. Every check runs before a release is made (signature v2/v3 with the developer key, package ownership); then the same automatic review as every store release runs (malware check, code scan, permissions, AI review); nothing waits for a person. A failed check answers check, message and fix. Every plan with an account; Developer role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "build": {
+          "type": "string",
+          "description": "Build id or the slug of its install link"
+        },
+        "check": {
+          "type": "boolean",
+          "description": "true = only show what would happen (default when confirm is not true)"
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "true = publish now (ask the person first)"
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 3,
+          "description": "Store categories from options.categories of the check answer"
+        },
+        "privacyPolicyUrl": {
+          "type": "string"
+        },
+        "websiteUrl": {
+          "type": "string"
+        },
+        "ratingAnswers": {
+          "type": "object",
+          "description": "violence, sexual, language, drugs, gambling, fear (none or a level), userInteraction, sharesLocation, purchases (booleans)"
+        },
+        "ads": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "boolean"
+        },
+        "permissionReasons": {
+          "type": "object",
+          "description": "Why the app needs each sensitive permission, by id (SMS, CALL_LOG, CONTACTS, BACKGROUND_LOCATION, ACCESSIBILITY, OVERLAY, INSTALL_PACKAGES, DEVICE_ADMIN, NOTIFICATION_LISTENER, ALL_FILES)"
+        },
+        "changelog": {
+          "type": "string",
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "android_store_safety",
+    "title": "Android store safety status",
+    "description": "Trust and safety facts of one AppForShare Android store listing of this workspace: whether the listing is taken down (kind REPORT after credible reports, COPYRIGHT or TRADEMARK after a complete notice, STAFF; the public note, and whether the owner can still dispute a report takedown once in the Store tab), releases AppForShare marked unsafe (the kill switch: the public reason, the source RESCAN = the weekly malware rescan matched, REPORT = a rescan started by a malware report matched (the number of reports never marks a release unsafe), STAFF; whether it was live, in which case it is out of the store and the F-Droid compatible repository lists it as KnownVuln so clients warn people who installed it), copies at Google Play or the App Store the author must pull there by hand (AppForShare never removes them), recent reports on the listing (category, the text with links removed, date and what the automatic triage did; never who reported), and copyright or trademark notices (status DISABLED = waiting for the one response of the developer, with evidence, RESPONDED = the sender may reply once within 10 business days, DECISION = AppForShare decides Restore or Keep down, RESTORED, KEPT_DOWN = upheld, WITHDRAWN, REJECTED; sender, work, claimed infringement, the decision reason, whether it counts as upheld), whether the store account is closed (three upheld notices in 12 months) and the upheld count, and the newest asset originality check (outcome PASS, HOLD = waits for proof from the Store tab, REJECT = a famous brand or another live app icon or package id without ownership proof; reasons with the addresses found, attribution notes for free stock images). Nothing comes back on a timer. Reports, rescans and complete notices are decided automatically; a disputed notice is decided by AppForShare; staff can override. Responses and disputes are sent from the Store tab or the mailed link, never from here. Read only. Every plan with an account.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "type": "integer",
+          "description": "Project id from list_projects (optional)"
+        },
+        "app": {
+          "type": "string",
+          "description": "Android package name, for example com.example.app (optional; without project or app, the first store app)"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "builder_status",
+    "title": "App builder status",
+    "description": "The AI app builder of this workspace: builder credits left (plan credits and pack credits, the monthly amount), the credit price of each action (design, first app, small and large edit, builds), and the builder apps (id, name, status DRAFT, DESIGNED, GENERATED). With app (an id from this list): its AI steps (DESIGN, GENERATE, EDIT with status QUEUED, RUNNING, SUCCEEDED, FAILED; credits used, refunded = true when a step failed and its credits came back, fix attempts, the error), its builds (platform, where it ran, status, credits, refunded), and where the next iOS and Android builds can run with plain cost words: github = Your GitHub (the customer pays their own GitHub Actions minutes, 0 credits), eas_own = Your Expo account (billed by Expo, 0 credits), eas_ours = AppForShare on Expo (credits), self_hosted = AppForShare Linux (Android only, credits); options that are not possible now say why. appleSigning = the saved Apple signing for iOS builds on eas_ours: source workspace (the workspace re-signing certificate is reused, only the profile is per app) or app (the app's own .p12), certificate and profile names and expiry, stale = true when the workspace certificate was replaced after the profile was saved (names and expiry only; it is added in the dashboard, never through this tool). workspaceCertificate = the workspace re-signing certificate and whether it can sign builds. Apps have a kind: MOBILE (Expo, iOS and Android) or WEB (Vite + React site). comments = comments on the design screens (screenId, author, fromClient = written by a client on an approval link, resolved). approvalLinks = client approval links (Pro and Team; open links per app depend on the plan): label, url, state open, revoked or expired, views, the client decision APPROVED or CHANGES_REQUESTED with onCurrentDesign = false when the design changed since. WEB apps: webPreview.url = the current version on its own preview address (every plan; null while previews are off on the server; previews are a test host with a bar on every page, only the current and the previous version keep one), webPreview.switchedOff = true when a Free preview was switched off after webPreview.idleDays without a new version (a new version or an edit turns it back on), webPreview.usage = preview traffic this UTC month in bytes against the plan allowance (over it the preview shows an allowance page until next month), and deploy = the deploy checklist (version, hosting provider netlify or vercel, provider token saved (never shown), domain and DNS records with the live check, public env variables the code reads, secret names only), ready, and the last deploys (status, url, mock = test mode where nothing was uploaded, refunded). aiPausedUntil = set while new AI steps of the workspace wait because too many failed in 24 hours (their credits were given back); say the time. MOBILE apps: mobilePreview = the current version running in the browser (react-native-web, shown in a phone frame on the app page): url (null until ready), status PENDING or BUILDING (about a minute), READY, FAILED with error (the app itself still passed its checks), liveContent = CMSCure texts and lists load live in it; same allowance and switch off rules as web previews. Without app: packs = the credit packs (credits and price in USD cents; Pro and Team, features.creditPacks; bought by the workspace owner in the dashboard, App builder, never through this tool), canBuyPacks, nudges = plain plan notes at a limit (apps used, credits low or out) with where to go; repeat them in words, do not push. Read only. Every plan with an account; Your GitHub and Your Expo account work on every plan for iOS and Android, eas_ours is Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id (optional)"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "create_builder_approval_link",
+    "title": "Make a client approval link for a builder design",
+    "description": "Make a link a client opens without an account to see the design screens of a builder app, comment on them and approve the design or ask for changes. Returns the url to send them. label names the link (for example the client); days = how long it stays open (1 to 90, default 30). The page shows the workspace's approval page look (name, color, logo, set in the dashboard). Tell the person first and pass confirm: true. Developer role. Pro and Team; open links per app depend on the plan.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "label": {
+          "type": "string",
+          "description": "Name of the link, for example \"Sarah at Bean There\""
+        },
+        "days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 90
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "app",
+        "label",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "start_builder_deploy",
+    "title": "Deploy a builder web app",
+    "description": "Deploy the current version of a builder WEB app to the customer's own hosting (Netlify or Vercel, their account). Only when the deploy checklist in builder_status is ready; the provider token, domain, env variables and secrets are entered in the dashboard, never through this tool. Costs builder credits (see prices in builder_status), given back when the deploy fails. Tell the person the cost, ask, and pass confirm: true. Follow the result with builder_status. Developer role. Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder web app id from builder_status"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "app",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "builder_changes",
+    "title": "App builder changes and diffs",
+    "description": "The changes of one builder app as a chat: the first generation, every change request (an AI edit, status QUEUED, RUNNING, SUCCEEDED or FAILED with the error; credits used, refunded = true when it failed and the credits came back) and every undo, oldest first. Each message has the version it made: number, current, the version it was made from, files changed, lines added and removed. undo = the version an undo of the current version goes back to (or null). With version (a version id from a message): the file diff of that version against the version it was made from, per file (added, removed or changed; hunks of lines with t \"+\" added, \"-\" removed, \" \" context; truncated = more changes than shown). Read only. Every plan with an account.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "version": {
+          "type": "integer",
+          "description": "Version id from a message (optional): returns its file diff"
+        }
+      },
+      "required": [
+        "app"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "builder_figma_export",
+    "title": "Figma export of a builder design",
+    "description": "The design of one builder app for Figma: tokens = the design tokens in the W3C Design Tokens format (color as sRGB with hex, typography in Inter, spacing and radius in px), screens = every screen or page with its id, title, file name and size. With screen (an id from that list): also svg = that screen as an SVG document with editable text in Inter, which pastes into Figma as a frame with text layers (save it as a .svg file or paste it as is; the text is not converted to outlines). The ZIP with all screens, tokens.json and a guide is on the app page (Figma section) and in the CLI: appforshare builder figma <app>. plugin = true when the plan has the AppForShare Figma plugin (auto layout frames, color and text styles; Pro and Team): the person makes a single use export code on the app page and pastes it into the plugin, never through this tool. Needs a design (the app has a spec). Read only. Every plan with an account.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "screen": {
+          "type": "string",
+          "description": "Screen id from the screens list (optional): returns its SVG"
+        }
+      },
+      "required": [
+        "app"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "builder_start_from_idea",
+    "title": "Start a builder app from an idea",
+    "description": "First step of starting an AI App Builder app from an idea, like the New app box of the dashboard: idea = what app the person wants in a few words (\"a booking app for my yoga studio\"), kind mobile (iOS and Android, default) or web. For a document (statement of work, idea doc or spec) use builder_start_from_document of the appforshare-mcp npm server, which uploads the local file and returns the same answer; pass its intake here only to change the idea of that start. Answers intake (the id for builder_answer_questions), summary (what we understood), name (the suggested app name), questions (0 to 3, only about what the idea leaves open: each has id q1 to q3, text and chips, the suggested answers numbered from 0), designCredits (what the design step costs, given back if it fails) and creditsLeft. Free: no credits. Ask the questions one at a time in the chat with their chips, say the person may answer in their own words, pick You decide, or skip the questions, then ask for an optional note (anything else, or anything missing) and call builder_answer_questions. Developer role. Every plan with an account.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "idea": {
+          "type": "string",
+          "description": "What app the person wants, in their words (3 to 2000 characters)"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "mobile",
+            "web"
+          ],
+          "default": "mobile"
+        },
+        "intake": {
+          "type": "integer",
+          "description": "Intake id from builder_start_from_document (optional)"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "builder_answer_questions",
+    "title": "Answer the start questions and design the app",
+    "description": "Second step after builder_start_from_idea (or builder_start_from_document): the answers to its questions and an optional note make the brief, the builder app is made and its design step starts. answers: one per question the person answered, { id: \"q1\", choice: chip number from 0 } or { id, choice: \"decide\" } (You decide) or { id, text: their own words }; questions left out count as You decide. skip: true = Skip questions (the answers are not used, sensible defaults instead). note = anything else the person wants or thinks is missing (optional, up to 1000 characters). The design costs designCredits (designSpec in builder_status prices, given back if it fails): tell the person the cost, ask, and pass confirm: true. Answers app (id, name), designStarted, note (why the design did not start, for example not enough credits: the app is saved and its Design button starts it later) and url (the app page in the dashboard). Follow the design with builder_status (app). Calling again for the same intake returns the same app. Developer role. Every plan with an account.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "intake": {
+          "type": "integer",
+          "description": "Intake id from builder_start_from_idea"
+        },
+        "answers": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "enum": [
+                  "q1",
+                  "q2",
+                  "q3"
+                ]
+              },
+              "choice": {
+                "description": "Chip number from 0, or \"decide\" for You decide",
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 3
+                  },
+                  {
+                    "type": "string",
+                    "const": "decide"
+                  }
+                ]
+              },
+              "text": {
+                "type": "string",
+                "description": "The answer in the person's own words (up to 300 characters are used)"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        "skip": {
+          "type": "boolean",
+          "description": "Skip questions: design with sensible defaults",
+          "default": false
+        },
+        "note": {
+          "type": "string",
+          "description": "Anything else, or anything missing (optional)"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "intake",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "builder_import_figma",
+    "title": "Start a builder app from Figma",
+    "description": "Start from Figma (Pro and Team): make a new builder app from screens of a Figma design file. step status: whether Figma is connected (an Admin connects a personal access token in the dashboard, App builder, Start from Figma; this tool never sees or takes a token), maxPick and designCredits. step frames with link (a Figma file, page or frame link): the file name and key and the screens per page (id, name, width, height, section). step check with link and frames (screen ids from frames; a frame link alone picks its frame): readiness score 0 to 100 per screen with plain issues (no auto layout, default layer names, a flat picture without text layers, texts without text styles, a size that is not a phone screen or web page); no credits. step import with link, frames, name (up to 30 characters) and about (what the app does, a sentence): creates the app and starts its design step, which reads the screens, keeps their texts, colors and pictures (Figma image fills copied into the app) and maps them to the builder design blocks (close, not pixel exact). The design step costs designCredits (designSpec in builder_status prices, given back if it fails): tell the person the cost, ask, and pass confirm: true. kind mobile (default) or web. Follow it with builder_status. Errors say what to do: reconnect Figma, check access to the file, or wait when Figma limits requests. Developer role for frames, check and import.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "step": {
+          "type": "string",
+          "enum": [
+            "status",
+            "frames",
+            "check",
+            "import"
+          ]
+        },
+        "link": {
+          "type": "string",
+          "description": "Figma design file, page or frame link (https://www.figma.com/design/...)"
+        },
+        "frames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Screen ids from step frames, like 12:34 (check and import)"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "mobile",
+            "web"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "App name (import)"
+        },
+        "about": {
+          "type": "string",
+          "description": "What the app does, a sentence or two (import)"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "step"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "request_builder_change",
+    "title": "Ask the app builder for a change",
+    "description": "Send one change request for a generated builder app, like a chat message (\"Add a contact tab\", \"Make the buttons rounder\"). The AI edits the code, the app is checked (TypeScript and the Android and iOS bundles, or the web build), and a passing result becomes a new version with its own diff and preview. Costs builder credits (editSmall to editLarge in builder_status prices: the larger amount is held, the difference comes back when 3 files or fewer changed; all of it comes back when the change does not pass the checks). Tell the person the cost, ask, and pass confirm: true. Follow it with builder_changes. One AI step per app at a time. Developer role. Every plan with an account (credits needed).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "request": {
+          "type": "string",
+          "description": "The change in plain words (3 to 4000 characters)"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "app",
+        "request",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "builder_bugs",
+    "title": "Bug reports of a builder app",
+    "description": "Tester bug reports (feedback of kind bug from the install page, the in-app link or TestFlight) on the builds of one builder app, newest first: id, message, reporter, device, model, osVersion, screen, appScreen, status open or resolved, blocker, the build (version label, platform), screenshots (files), link = the full report in the Feedback inbox, and fix = the Fix with AI state: fixing (the AI edit runs), in_progress (the edit passed and made versionNumber; it waits for a build), failed (the edit did not pass, credits given back), fixed (a build of that version or later was added: fixedIn; the report got \"Fixed in version X\" and was resolved; replied = the tester was emailed, Team plan with an address). project = null until the app has a build. status: open (default), resolved or all; before = next page. With report (an id from the list): also prompt = the editable Fix with AI request for it (text and device facts, no images). Read only. Every plan with an account.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "resolved",
+            "all"
+          ]
+        },
+        "before": {
+          "type": "integer",
+          "description": "Report id from next (the next page)"
+        },
+        "report": {
+          "type": "integer",
+          "description": "Bug report id (optional): adds its Fix with AI prompt"
+        }
+      },
+      "required": [
+        "app"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "builder_fix_bug",
+    "title": "Fix a builder app bug report with AI",
+    "description": "Fix with AI: one open bug report from builder_bugs becomes a change request in the app's chat (like request_builder_change), linked to the report. Without request the prompt of builder_bugs (report) is sent; show it to the person first, they may change it (3 to 4000 characters). Costs builder credits like any change (editSmall to editLarge in builder_status prices, given back by the same rules). When a build of the new version or a later one is added, the report gets \"Fixed in version X\" and is resolved. Tell the person the cost, ask, and pass confirm: true. Follow it with builder_changes and builder_bugs. One AI step per app at a time. Developer role. Every plan with builder credits.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "report": {
+          "type": "integer",
+          "description": "Bug report id from builder_bugs"
+        },
+        "request": {
+          "type": "string",
+          "description": "The change request to send (optional, default the prompt of builder_bugs)"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "app",
+        "report",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "undo_builder_change",
+    "title": "Undo the last app builder change",
+    "description": "Undo: the version the current version was made from (undo in builder_changes) is saved again as a new version and becomes current. Nothing is deleted: the undone version stays in the history and can be restored the same way. No AI, no credits; the preview is copied or rebuilt in about a minute. Not while an AI step of the app runs. Tell the person which version comes back, ask, and pass confirm: true. Developer role. Every plan with an account.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "version": {
+          "type": "integer",
+          "description": "Version id to bring back (optional, default the undo target from builder_changes)"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "app",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "builder_backend_status",
+    "title": "App builder backend status",
+    "description": "The managed backend of one builder app in plain words: draft (sign in methods, invite only, roles, tables with their fields and who may see, add, change and delete, file buckets, automations), pending = changes of the draft not live yet (destructive = true when they delete saved data), live (address, publishable app key, the start of the secret key, privacy page, usage against the caps: data, files, traffic this UTC month, rows per table; capReason when writes stop at a cap; boosted = double limits from an add-on; sign in client ids by platform), limits (live backends used and allowed, plan caps), addons (extra backends and double limit add-ons bought on the billing page, $10 a month each, Pro and Team; bought by the workspace owner in the dashboard, never through this tool), backups (daily, newest 7 kept, and before destructive changes) and storeAnswers (store privacy form answers). Free: no live backend, the preview uses sample data and the backend code can be downloaded. Read only. Every plan with an account.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        }
+      },
+      "required": [
+        "app"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "request_builder_backend_change",
+    "title": "Ask the app builder to make or change a backend",
+    "description": "Make the backend of a builder app, or change it, from plain words (\"members book classes, staff confirm them\", \"ask for a phone number on bookings\"). The AI writes the backend (tables, rules, sign in, files, automations) and it is checked against the safety rules; a live backend only changes after apply_builder_backend. Costs builder credits (backendSpec for a new backend, backendEdit for a change, see builder_status prices; given back when it fails). Tell the person the cost, ask, and pass confirm: true. Follow it with builder_backend_status. Developer role. Every plan with an account (credits needed).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "request": {
+          "type": "string",
+          "description": "What the app saves and who may do what, or what should change (3 to 2000 characters)"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "app",
+        "request",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "apply_builder_backend",
+    "title": "Make backend changes live",
+    "description": "Make the pending backend changes of a builder app live (see pending in builder_backend_status). Changes that only add go live at once. Changes that delete saved data (a table or field removed, a type changed) come back as needsConfirm with applied = false and nothing changed: tell the person exactly what is deleted, ask, and call again with confirmDataLoss: true; a backup is taken first (backupId). No credits. Pass confirm: true. Developer role. Pro and Team (a live backend).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        },
+        "confirmDataLoss": {
+          "type": "boolean",
+          "description": "true only after the person agreed to the listed data deletions"
+        }
+      },
+      "required": [
+        "app",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "builder_build",
+    "title": "One app builder build",
+    "description": "One build of a builder app (build id from builder_status builds or start_builder_build): status QUEUED, STARTED, SUCCEEDED, FAILED or CANCELED, step = what an AppForShare Linux build is doing now in plain words (waiting for a build server, starting a build server, preparing the Android project, building the release APK and AAB, signing, adding it to AppForShare, making the share link), queueAhead = Linux builds that start before it while every build server is busy (null when one is free for it), credits and refunded, error in plain words, durationMs, artifact (APK and AAB size, APK SHA-256, versionCode, versionName, certSha256 = the app's signing certificate fingerprint) and build = the AppForShare build made from it: url = the install link to share (its page has the QR code, testers and Send to Google Play). log = the end of the build output with secrets removed (Linux builds; only when log: true). A build is SUCCEEDED with build null for a minute while the share link is made: call again. note = something to know in plain words (github: the version went to its own branch with a pull request); runUrl = the run on GitHub (github builds); artifact.kind = apk or ipa. Read only. Every plan with an account.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "build": {
+          "type": "integer",
+          "description": "Build id from builder_status builds"
+        },
+        "log": {
+          "type": "boolean",
+          "description": "Include the end of the build output (default false)"
+        }
+      },
+      "required": [
+        "app",
+        "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "start_builder_build",
+    "title": "Start an app builder build",
+    "description": "Start a cloud build of a builder app for one platform. provider picks where it runs and who pays: github (the customer's own GitHub Actions minutes, 0 credits), eas_own (the customer's own Expo account, 0 credits), eas_ours (AppForShare on Expo: iOS and Android cost builder credits), self_hosted (AppForShare Linux, Android only, credits: a signed release APK and AAB made on our build servers, signed with the app's own key, then added as an AppForShare build with an install link, QR code and testers; each build runs on a fresh build machine of its own that is deleted afterwards and usually takes about 10 to 15 minutes; per plan a daily cap of Linux builds applies, Team builds go first). Without provider the app's or the workspace's saved choice is used; with none the call fails and lists the options, so nothing is spent on a guess. Tell the person the cost from builder_status first, ask, and pass confirm: true. Follow a build with builder_build. A build that fails on a paid provider, or on our side, is refunded. Developer role. github and eas_own on every plan (iOS too); eas_ours on Pro and Team, and eas_ours iOS needs the app's Apple signing saved in the dashboard (Builds, Apple signing: the provisioning profile, plus a .p12 when the workspace has no matching signing certificate). github needs the app's repository picked first (builder_github, set_builder_github): each build pushes the current version to it as a new commit (a pull request on its own branch when the branch has commits AppForShare did not make) and runs the AppForShare workflow there; github iOS also needs the Apple Team ID. eas_own needs the customer's Expo access token saved in the dashboard (App builder, Where builds run). Android builds on github, eas_own and eas_ours are signed with the app's own key, the same as Linux builds. Every provider brings the app file back as an AppForShare build with an install link.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "platform": {
+          "type": "string",
+          "enum": [
+            "ios",
+            "android"
+          ]
+        },
+        "provider": {
+          "type": "string",
+          "enum": [
+            "github",
+            "eas_own",
+            "eas_ours",
+            "self_hosted"
+          ]
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "app",
+        "platform",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "builder_release",
+    "title": "Store hand-off of a builder build",
+    "description": "Where a finished build of a builder MOBILE app can go: targets afs = the AppForShare Android store (it lists only apps it builds itself from reviewed source, so the app's GitHub repository becomes the store source), play = Google Play (the kept .aab through Send to Google Play: testing tracks on Pro, production as a draft on Team, the workspace's own Play connection), appstore = TestFlight and App Store review (the App Store signed .ipa, the workspace's own App Store Connect key, the customer's own Apple signing). Each target: ready, todo = everything still needed in plain words in order, checklist = the store readiness items (privacy policy address, Delete account, Data safety or App Privacy answers, content rating hints, permissions and store rules from the build; ok true = done, false = to do, null = answer it in the store), steps for the first time (Play: create the app in Play Console, the first .aab by hand, the upload key fingerprint), and sends = every send so far (where, status QUEUED, SENDING, PROCESSING, SENT, DRAFT, SUBMITTED = waiting for App Store review, SET = store source set, FAILED; the store answer, who and when). Without build: the newest finished build of platform (or of either platform). Sending is done by an Admin with an explicit confirm in the dashboard (App builder, the app, Release) or with the CLI (appforshare builder release), never from here. Read only. Every plan with an account; Google Play and TestFlight sends are Pro and Team.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "build": {
+          "type": "integer",
+          "description": "Build id from builder_status builds (optional)"
+        },
+        "platform": {
+          "type": "string",
+          "enum": [
+            "ios",
+            "android"
+          ],
+          "description": "Without build: the newest finished build of this platform (optional)"
+        }
+      },
+      "required": [
+        "app"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "builder_review_notes",
+    "title": "Store review notes for a builder build",
+    "description": "The Notes for App Review (App Store review, Google Play review) and the TestFlight What to Test text of one builder build, written only from what AppForShare knows of the app (brief, screens, backend sign in and data, live content, permissions). Without ai: the last AI notes of the build, else the template notes (free). ai: true asks Gemini to write them from the same facts: one AI action of the plan's monthly AI actions (cached per facts; fresh: true writes them again); tell the person, ask, and pass confirm: true. source = template or ai. The person reads and edits the text before a send; nothing goes to a store from here. Developer role for ai. Every plan with an account.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "build": {
+          "type": "integer",
+          "description": "Build id from builder_status builds"
+        },
+        "ai": {
+          "type": "boolean",
+          "description": "Write them with AI (one AI action)"
+        },
+        "fresh": {
+          "type": "boolean",
+          "description": "With ai: write them again instead of the cached answer"
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "true when ai is true, after the person agreed"
+        }
+      },
+      "required": [
+        "app",
+        "build"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "builder_github",
+    "title": "Your GitHub builds of a builder app",
+    "description": "Builds on the customer's own GitHub (provider github) for one builder app: enabled (this server has the AppForShare Builds GitHub app), installs (GitHub accounts and organizations with the app installed, id = install id), repo (the app's repository: name, branch, last push and commit, Actions and secrets pages, iOS signing: iosTeamId and ascConnectionId, null = the customer adds the App Store Connect key secrets in GitHub; iosAppStore = iOS builds are signed for the App Store, so they can go to TestFlight and App Store review through builder_release, else for testers with an install link; private = GitHub visibility), ascConnections (workspace App Store Connect connections that can provide the key), newRepoUrl (GitHub page to create an empty repository), secretNames. With install: also repos = the repositories that install can reach (id, name, usedBy = the builder app already on it). Read only. Every plan with an account; listing repositories needs the Admin role.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "install": {
+          "type": "integer",
+          "description": "Install id from installs: also list its repositories"
+        }
+      },
+      "required": [
+        "app"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "set_builder_github",
+    "title": "Set the GitHub repository or iOS signing of a builder app",
+    "description": "Changes Your GitHub builds of a builder app. With install and repo: picks that repository for the app (it must be empty, or one this app pushed to before; Android builds put the app's signing key into its Actions secrets). With install and create: creates a private repository in that GitHub organization (only when the Builds app may; on personal accounts the customer creates an empty one on GitHub and gives the app access). With teamId, ascConnection and/or iosAppStore: iOS signing for builds there (Apple Team ID, 10 letters and digits; ascConnection = a workspace App Store Connect connection whose key AppForShare sets as the repository secrets before each iOS build, null = the customer adds the secrets themselves; iosAppStore true = iOS builds are signed for the App Store for TestFlight and App Store review, false = for testers with an install link). With unlink: true: forgets the repository (nothing is deleted on GitHub). Ask the person first and pass confirm: true. Admin role. Every plan with an account.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "integer",
+          "description": "Builder app id from builder_status"
+        },
+        "install": {
+          "type": "integer",
+          "description": "Install id from builder_github installs"
+        },
+        "repo": {
+          "type": "integer",
+          "description": "Repository id from builder_github repos"
+        },
+        "create": {
+          "type": "string",
+          "description": "Name of a new private repository in the install's organization"
+        },
+        "teamId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Apple Team ID for iOS builds"
+        },
+        "ascConnection": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "App Store Connect connection id, or null"
+        },
+        "iosAppStore": {
+          "type": "boolean",
+          "description": "true: iOS builds signed for the App Store (TestFlight, review); false: for testers"
+        },
+        "unlink": {
+          "type": "boolean"
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "app",
+        "confirm"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
     }
   }
 ]

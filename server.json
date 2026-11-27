@@ -17,7 +17,7 @@
       ]
     }
   ],
-  "version": "1.0.7",
+  "version": "1.0.14",
   "remotes": [
     {
       "type": "streamable-http",
@@ -28,7 +28,7 @@
     {
       "registryType": "npm",
       "identifier": "appforshare-mcp",
-      "version": "1.0.7",
+      "version": "1.0.14",
       "transport": {
         "type": "stdio"
       },

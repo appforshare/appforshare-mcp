@@ -1,17 +1,5 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "outDir": "dist",
-    "rootDir": "src",
-    "types": ["node"]
-  },
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "module": "commonjs", "moduleResolution": "node", "outDir": "dist", "rootDir": "src", "types": ["node"], "resolveJsonModule": true },
   "include": ["src/**/*.ts", "src/**/*.json"]
 }

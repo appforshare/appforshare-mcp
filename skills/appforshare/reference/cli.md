@@ -36,6 +36,13 @@ npx appforshare whoami
 npx appforshare builds [--platform ios|android] [--app <bundle id>] [--project <id>] [--channel <name>] [--limit <n>]
 npx appforshare latest --channel beta --platform android
 npx appforshare info <id|slug>                 # readiness findings with fixes, install issues
+npx appforshare security <id|slug> [--fail-on warn|block]   # security scan findings (Pro); export (Team): --format json|html --out <file>
+npx appforshare badge <id|slug|channel> [--markdown|--html] [--light]   # README download button snippets
+npx appforshare check <file|folder> [--fail-on review] [--json]  # check locally before upload, nothing is uploaded (no account needed)
+npx appforshare upload --url <https url> [--channel beta]      # AppForShare downloads a public https build link (Pro)
+npx appforshare tokens [list|create <name> [--read-only|--upload-only] [--expires-in-days n]|revoke <id>]
+npx appforshare restore [id|slug]                              # builds deleted in the last 7 days
+npx appforshare webhooks [list|test <id>|deliveries <id>|redeliver <delivery id>]
 npx appforshare installs <id|slug>
 npx appforshare checklist <id|slug>            # Team
 npx appforshare feedback [id|slug] [--status open|resolved|all]
@@ -61,6 +68,7 @@ npx appforshare email <id|slug> --to a@example.com,b@example.com
 npx appforshare delete <id|slug> --yes
 npx appforshare send-feedback <feedback id> --to linear|jira
 npx appforshare feedback-task <feedback id>                      # Team
+npx appforshare feedback reply <feedback id> --text "..."        # Team, emails the tester once
 npx appforshare testers add <emails> [--project <id>] [--groups <names>] [--no-notify]   # Team
 npx appforshare testers remove <emails> [--project <id>]         # Team
 npx appforshare distribute <id|slug> --groups <names> --testers <emails>                 # Team
